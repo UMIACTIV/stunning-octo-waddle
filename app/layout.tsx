@@ -1,47 +1,65 @@
 import { CartProvider } from "components/cart/cart-context";
+import { AnnouncementBar } from "components/layout/announcement-bar";
 import { Navbar } from "components/layout/navbar";
+import { WishlistProvider } from "components/wishlist/wishlist-context";
 import { WelcomeToast } from "components/welcome-toast";
-import { GeistSans } from "geist/font/sans";
+import { Montserrat, Nunito_Sans } from "next/font/google";
 import { getCart } from "lib/shopify";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { baseUrl } from "lib/utils";
 
+const montserrat = Montserrat({
+ subsets: ["latin"],
+ weight: ["400", "500", "600", "700"],
+ variable: "--font-heading",
+ display: "swap",
+});
+
+const nunitoSans = Nunito_Sans({
+ subsets: ["latin"],
+ weight: ["400", "600", "700"],
+ variable: "--font-body",
+ display: "swap",
+});
+
 const { SITE_NAME } = process.env;
 
 export const metadata = {
-  metadataBase: new URL(baseUrl),
-  title: {
-    default: SITE_NAME!,
-    template: `%s | ${SITE_NAME}`,
-  },
-  robots: {
-    follow: true,
-    index: true,
-  },
+ metadataBase: new URL(baseUrl),
+ title: {
+ default: SITE_NAME!,
+ template: `%s | ${SITE_NAME}`,
+ },
+ robots: {
+ follow: true,
+ index: true,
+ },
 };
 
 export default async function RootLayout({
-  children,
+ children,
 }: {
-  children: ReactNode;
+ children: ReactNode;
 }) {
-  // Don't await the fetch, pass the Promise to the context provider
-  const cart = getCart();
+ const cart = getCart();
 
-  return (
-    <html lang="en" className={GeistSans.variable}>
-      <body className="bg-neutral-50 text-black selection:bg-teal-300 dark:bg-neutral-900 dark:text-white dark:selection:bg-pink-500 dark:selection:text-white">
-        <CartProvider cartPromise={cart}>
-          <Navbar />
-          <main>
-            {children}
-            <Toaster closeButton />
-            <WelcomeToast />
-          </main>
-        </CartProvider>
-      </body>
-    </html>
-  );
+ return (
+ <html lang="en" className={`${montserrat.variable} ${nunitoSans.variable}`}>
+ <body className="overflow-x-hidden bg-white text-[var(--color-text)]">
+ <AnnouncementBar />
+  <CartProvider cartPromise={cart}>
+  <WishlistProvider>
+  <Navbar />
+  <main>
+  {children}
+  <Toaster closeButton />
+  <WelcomeToast />
+  </main>
+  </WishlistProvider>
+  </CartProvider>
+ </body>
+ </html>
+ );
 }

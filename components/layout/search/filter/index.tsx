@@ -7,41 +7,41 @@ export type ListItem = SortFilterItem | PathFilterItem;
 export type PathFilterItem = { title: string; path: string };
 
 function FilterItemList({ list }: { list: ListItem[] }) {
-  return (
-    <>
-      {list.map((item: ListItem, i) => (
-        <FilterItem key={i} item={item} />
-      ))}
-    </>
-  );
+ return (
+ <>
+ {list.map((item: ListItem, i) => (
+ <FilterItem key={i} item={item} />
+ ))}
+ </>
+ );
 }
 
 export default function FilterList({
-  list,
-  title,
+ list,
+ title,
 }: {
-  list: ListItem[];
-  title?: string;
+ list: ListItem[];
+ title?: string;
 }) {
-  return (
-    <>
-      <nav>
-        {title ? (
-          <h3 className="hidden text-xs text-neutral-500 md:block dark:text-neutral-400">
-            {title}
-          </h3>
-        ) : null}
-        <ul className="hidden md:block">
-          <Suspense fallback={null}>
-            <FilterItemList list={list} />
-          </Suspense>
-        </ul>
-        <ul className="md:hidden">
-          <Suspense fallback={null}>
-            <FilterItemDropdown list={list} />
-          </Suspense>
-        </ul>
-      </nav>
-    </>
-  );
+ return (
+ <>
+ <nav>
+ {title ? (
+ <h3 className="hidden font-[family-name:var(--font-heading)] text-[11px] uppercase tracking-[0.12em] text-[#6b6b6b] md:block">
+ {title}
+ </h3>
+ ) : null}
+ <ul className="hidden md:block">
+ <Suspense fallback={null}>
+ <FilterItemList list={list} />
+ </Suspense>
+ </ul>
+ <ul className="md:hidden">
+ <Suspense fallback={null}>
+ <FilterItemDropdown list={list} />
+ </Suspense>
+ </ul>
+ </nav>
+ </>
+ );
 }

@@ -88,6 +88,7 @@ export type ProductVariant = {
     value: string;
   }[];
   price: Money;
+  compareAtPrice?: Money | null;
 };
 
 export type SEO = {
@@ -126,6 +127,9 @@ export type ShopifyProduct = {
   priceRange: {
     maxVariantPrice: Money;
     minVariantPrice: Money;
+  };
+  compareAtPriceRange?: {
+    maxVariantPrice: Money;
   };
   variants: Connection<ProductVariant>;
   featuredImage: Image;
@@ -200,16 +204,34 @@ export type ShopifyCollectionOperation = {
   };
 };
 
+export type ShopifyFilter = {
+  id: string;
+  label: string;
+  type: 'LIST' | 'PRICE_RANGE' | 'BOOLEAN';
+  values: ShopifyFilterValue[];
+};
+
+export type ShopifyFilterValue = {
+  id: string;
+  label: string;
+  count: number;
+  input: string;
+};
+
 export type ShopifyCollectionProductsOperation = {
   data: {
     collection: {
-      products: Connection<ShopifyProduct>;
+      products: Connection<ShopifyProduct> & {
+        filters: ShopifyFilter[];
+      };
     };
   };
   variables: {
     handle: string;
     reverse?: boolean;
     sortKey?: string;
+    filters?: Record<string, unknown>[];
+    country?: string;
   };
 };
 
@@ -248,6 +270,7 @@ export type ShopifyProductOperation = {
   data: { product: ShopifyProduct };
   variables: {
     handle: string;
+    country?: string;
   };
 };
 
@@ -257,6 +280,7 @@ export type ShopifyProductRecommendationsOperation = {
   };
   variables: {
     productId: string;
+    country?: string;
   };
 };
 
@@ -268,5 +292,27 @@ export type ShopifyProductsOperation = {
     query?: string;
     reverse?: boolean;
     sortKey?: string;
+    country?: string;
+  };
+};
+
+export type ShopifyCurrency = {
+  isoCode: string;
+  name: string;
+  symbol: string;
+};
+
+export type ShopifyCountry = {
+  isoCode: string;
+  name: string;
+  currency: ShopifyCurrency;
+};
+
+export type ShopifyLocalizationOperation = {
+  data: {
+    localization: {
+      availableCountries: ShopifyCountry[];
+      country: ShopifyCountry;
+    };
   };
 };

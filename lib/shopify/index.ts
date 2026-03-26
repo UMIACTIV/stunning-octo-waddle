@@ -24,6 +24,7 @@ import {
   getCollectionQuery,
   getCollectionsQuery,
 } from "./queries/collection";
+import { getLocalizationQuery } from "./queries/localization";
 import { getMenuQuery } from "./queries/menu";
 import { getPageQuery, getPagesQuery } from "./queries/page";
 import {
@@ -47,6 +48,7 @@ import {
   ShopifyCollectionProductsOperation,
   ShopifyCollectionsOperation,
   ShopifyCreateCartOperation,
+  ShopifyFilter,
   ShopifyMenuOperation,
   ShopifyPageOperation,
   ShopifyPagesOperation,
@@ -54,6 +56,8 @@ import {
   ShopifyProductOperation,
   ShopifyProductRecommendationsOperation,
   ShopifyProductsOperation,
+  ShopifyCountry,
+  ShopifyLocalizationOperation,
   ShopifyRemoveFromCartOperation,
   ShopifyUpdateCartOperation,
 } from "./types";
@@ -98,6 +102,7 @@ export async function shopifyFetch<T>({
     const body = await result.json();
 
     if (body.errors) {
+      console.error("Shopify API error:", JSON.stringify(body.errors[0]));
       throw body.errors[0];
     }
 
@@ -107,6 +112,7 @@ export async function shopifyFetch<T>({
     };
   } catch (e) {
     if (isShopifyError(e)) {
+      console.error(`Shopify fetch failed: ${e.message}`);
       throw {
         cause: e.cause?.toString() || "unknown",
         status: e.status || 500,
@@ -115,6 +121,7 @@ export async function shopifyFetch<T>({
       };
     }
 
+    console.error("Shopify fetch error:", e);
     throw {
       error: e,
       query,
@@ -291,6 +298,41 @@ export async function getCart(): Promise<Cart | undefined> {
   return reshapeCart(res.body.data.cart);
 }
 
+export async function getCountryFromCookies(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get("umi-country")?.value || undefined;
+}
+
+export async function getLocalization(): Promise<{
+  availableCountries: ShopifyCountry[];
+  country: ShopifyCountry;
+}> {
+  "use cache";
+  cacheTag(TAGS.collections);
+  cacheLife("days");
+
+  if (!endpoint) {
+    return {
+      availableCountries: [],
+      country: { isoCode: "US", name: "United States", currency: { isoCode: "USD", name: "US Dollar", symbol: "$" } },
+    };
+  }
+
+  try {
+    const res = await shopifyFetch<ShopifyLocalizationOperation>({
+      query: getLocalizationQuery,
+    });
+
+    return res.body.data.localization;
+  } catch (e) {
+    console.error("Failed to fetch localization:", e);
+    return {
+      availableCountries: [],
+      country: { isoCode: "US", name: "United States", currency: { isoCode: "USD", name: "US Dollar", symbol: "$" } },
+    };
+  }
+}
+
 export async function getCollection(
   handle: string
 ): Promise<Collection | undefined> {
@@ -298,25 +340,49 @@ export async function getCollection(
   cacheTag(TAGS.collections);
   cacheLife("days");
 
-  const res = await shopifyFetch<ShopifyCollectionOperation>({
-    query: getCollectionQuery,
-    variables: {
-      handle,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyCollectionOperation>({
+      query: getCollectionQuery,
+      variables: {
+        handle,
+      },
+    });
 
-  return reshapeCollection(res.body.data.collection);
+    return reshapeCollection(res.body.data.collection);
+  } catch (e) {
+    console.error(`Failed to fetch collection '${handle}':`, e);
+    return undefined;
+  }
 }
 
 export async function getCollectionProducts({
   collection,
   reverse,
   sortKey,
+  filters,
 }: {
   collection: string;
   reverse?: boolean;
   sortKey?: string;
-}): Promise<Product[]> {
+  filters?: Record<string, unknown>[];
+}): Promise<{ products: Product[]; filters: ShopifyFilter[] }> {
+  const country = await getCountryFromCookies();
+  return getCollectionProductsCached({ collection, reverse, sortKey, filters, country });
+}
+
+async function getCollectionProductsCached({
+  collection,
+  reverse,
+  sortKey,
+  filters,
+  country,
+}: {
+  collection: string;
+  reverse?: boolean;
+  sortKey?: string;
+  filters?: Record<string, unknown>[];
+  country?: string;
+}): Promise<{ products: Product[]; filters: ShopifyFilter[] }> {
   "use cache";
   cacheTag(TAGS.collections, TAGS.products);
   cacheLife("days");
@@ -325,26 +391,36 @@ export async function getCollectionProducts({
     console.log(
       `Skipping getCollectionProducts for '${collection}' - Shopify not configured`
     );
-    return [];
+    return { products: [], filters: [] };
   }
 
-  const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
-    query: getCollectionProductsQuery,
-    variables: {
-      handle: collection,
-      reverse,
-      sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyCollectionProductsOperation>({
+      query: getCollectionProductsQuery,
+      variables: {
+        handle: collection,
+        reverse,
+        sortKey: sortKey === "CREATED_AT" ? "CREATED" : sortKey,
+        ...(filters && filters.length > 0 ? { filters } : {}),
+        ...(country ? { country } : {}),
+      },
+    });
 
-  if (!res.body.data.collection) {
-    console.log(`No collection found for \`${collection}\``);
-    return [];
+    if (!res.body.data.collection) {
+      console.log(`No collection found for \`${collection}\``);
+      return { products: [], filters: [] };
+    }
+
+    return {
+      products: reshapeProducts(
+        removeEdgesAndNodes(res.body.data.collection.products)
+      ),
+      filters: res.body.data.collection.products.filters ?? [],
+    };
+  } catch (e) {
+    console.error(`Failed to fetch collection products for '${collection}':`, e);
+    return { products: [], filters: [] };
   }
-
-  return reshapeProducts(
-    removeEdgesAndNodes(res.body.data.collection.products)
-  );
 }
 
 export async function getCollections(): Promise<Collection[]> {
@@ -369,30 +445,40 @@ export async function getCollections(): Promise<Collection[]> {
     ];
   }
 
-  const res = await shopifyFetch<ShopifyCollectionsOperation>({
-    query: getCollectionsQuery,
-  });
-  const shopifyCollections = removeEdgesAndNodes(res.body?.data?.collections);
-  const collections = [
-    {
-      handle: "",
-      title: "All",
-      description: "All products",
-      seo: {
+  try {
+    const res = await shopifyFetch<ShopifyCollectionsOperation>({
+      query: getCollectionsQuery,
+    });
+    const shopifyCollections = removeEdgesAndNodes(res.body?.data?.collections);
+    return [
+      {
+        handle: "",
         title: "All",
         description: "All products",
+        seo: {
+          title: "All",
+          description: "All products",
+        },
+        path: "/search",
+        updatedAt: new Date().toISOString(),
       },
-      path: "/search",
-      updatedAt: new Date().toISOString(),
-    },
-    // Filter out the `hidden` collections.
-    // Collections that start with `hidden-*` need to be hidden on the search page.
-    ...reshapeCollections(shopifyCollections).filter(
-      (collection) => !collection.handle.startsWith("hidden")
-    ),
-  ];
-
-  return collections;
+      ...reshapeCollections(shopifyCollections).filter(
+        (collection) => !collection.handle.startsWith("hidden")
+      ),
+    ];
+  } catch (e) {
+    console.error("Failed to fetch collections:", e);
+    return [
+      {
+        handle: "",
+        title: "All",
+        description: "All products",
+        seo: { title: "All", description: "All products" },
+        path: "/search",
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+  }
 }
 
 export async function getMenu(handle: string): Promise<Menu[]> {
@@ -405,42 +491,64 @@ export async function getMenu(handle: string): Promise<Menu[]> {
     return [];
   }
 
-  const res = await shopifyFetch<ShopifyMenuOperation>({
-    query: getMenuQuery,
-    variables: {
-      handle,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyMenuOperation>({
+      query: getMenuQuery,
+      variables: {
+        handle,
+      },
+    });
 
-  return (
-    res.body?.data?.menu?.items.map((item: { title: string; url: string }) => ({
-      title: item.title,
-      path: item.url
-        .replace(domain, "")
-        .replace("/collections", "/search")
-        .replace("/pages", ""),
-    })) || []
-  );
+    return (
+      res.body?.data?.menu?.items.map(
+        (item: { title: string; url: string }) => ({
+          title: item.title,
+          path: item.url
+            .replace(domain, "")
+            .replace("/collections", "/search")
+            .replace("/pages", ""),
+        })
+      ) || []
+    );
+  } catch (e) {
+    console.error(`Failed to fetch menu '${handle}':`, e);
+    return [];
+  }
 }
 
 export async function getPage(handle: string): Promise<Page> {
-  const res = await shopifyFetch<ShopifyPageOperation>({
-    query: getPageQuery,
-    variables: { handle },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyPageOperation>({
+      query: getPageQuery,
+      variables: { handle },
+    });
 
-  return res.body.data.pageByHandle;
+    return res.body.data.pageByHandle;
+  } catch (e) {
+    console.error(`Failed to fetch page '${handle}':`, e);
+    return { id: "", title: "Not Found", handle, body: "", bodySummary: "", seo: { title: "", description: "" }, createdAt: "", updatedAt: "" };
+  }
 }
 
 export async function getPages(): Promise<Page[]> {
-  const res = await shopifyFetch<ShopifyPagesOperation>({
-    query: getPagesQuery,
-  });
+  try {
+    const res = await shopifyFetch<ShopifyPagesOperation>({
+      query: getPagesQuery,
+    });
 
-  return removeEdgesAndNodes(res.body.data.pages);
+    return removeEdgesAndNodes(res.body.data.pages);
+  } catch (e) {
+    console.error("Failed to fetch pages:", e);
+    return [];
+  }
 }
 
 export async function getProduct(handle: string): Promise<Product | undefined> {
+  const country = await getCountryFromCookies();
+  return getProductCached(handle, country);
+}
+
+async function getProductCached(handle: string, country?: string): Promise<Product | undefined> {
   "use cache";
   cacheTag(TAGS.products);
   cacheLife("days");
@@ -450,31 +558,51 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
     return undefined;
   }
 
-  const res = await shopifyFetch<ShopifyProductOperation>({
-    query: getProductQuery,
-    variables: {
-      handle,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyProductOperation>({
+      query: getProductQuery,
+      variables: {
+        handle,
+        ...(country ? { country } : {}),
+      },
+    });
 
-  return reshapeProduct(res.body.data.product, false);
+    return reshapeProduct(res.body.data.product, false);
+  } catch (e) {
+    console.error(`Failed to fetch product '${handle}':`, e);
+    return undefined;
+  }
 }
 
 export async function getProductRecommendations(
   productId: string
 ): Promise<Product[]> {
+  const country = await getCountryFromCookies();
+  return getProductRecommendationsCached(productId, country);
+}
+
+async function getProductRecommendationsCached(
+  productId: string,
+  country?: string
+): Promise<Product[]> {
   "use cache";
   cacheTag(TAGS.products);
   cacheLife("days");
 
-  const res = await shopifyFetch<ShopifyProductRecommendationsOperation>({
-    query: getProductRecommendationsQuery,
-    variables: {
-      productId,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyProductRecommendationsOperation>({
+      query: getProductRecommendationsQuery,
+      variables: {
+        productId,
+        ...(country ? { country } : {}),
+      },
+    });
 
-  return reshapeProducts(res.body.data.productRecommendations);
+    return reshapeProducts(res.body.data.productRecommendations);
+  } catch (e) {
+    console.error(`Failed to fetch product recommendations:`, e);
+    return [];
+  }
 }
 
 export async function getProducts({
@@ -486,20 +614,41 @@ export async function getProducts({
   reverse?: boolean;
   sortKey?: string;
 }): Promise<Product[]> {
+  const country = await getCountryFromCookies();
+  return getProductsCached({ query, reverse, sortKey, country });
+}
+
+async function getProductsCached({
+  query,
+  reverse,
+  sortKey,
+  country,
+}: {
+  query?: string;
+  reverse?: boolean;
+  sortKey?: string;
+  country?: string;
+}): Promise<Product[]> {
   "use cache";
   cacheTag(TAGS.products);
   cacheLife("days");
 
-  const res = await shopifyFetch<ShopifyProductsOperation>({
-    query: getProductsQuery,
-    variables: {
-      query,
-      reverse,
-      sortKey,
-    },
-  });
+  try {
+    const res = await shopifyFetch<ShopifyProductsOperation>({
+      query: getProductsQuery,
+      variables: {
+        query,
+        reverse,
+        sortKey,
+        ...(country ? { country } : {}),
+      },
+    });
 
-  return reshapeProducts(removeEdgesAndNodes(res.body.data.products));
+    return reshapeProducts(removeEdgesAndNodes(res.body.data.products));
+  } catch (e) {
+    console.error("Failed to fetch products:", e);
+    return [];
+  }
 }
 
 // This is called from `app/api/revalidate.ts` so providers can control revalidation logic.

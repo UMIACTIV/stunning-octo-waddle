@@ -1,96 +1,118 @@
-"use client";
+'use client';
 
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
-import { GridTileImage } from "components/grid/tile";
-import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 
 export function Gallery({
   images,
 }: {
   images: { src: string; altText: string }[];
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const imageIndex = searchParams.has("image")
-    ? parseInt(searchParams.get("image")!)
-    : 0;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const thumbnailStripRef = useRef<HTMLDivElement>(null);
 
-  const updateImage = (index: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("image", index);
-    router.replace(`?${params.toString()}`, { scroll: false });
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = imageRefs.current.indexOf(
+              entry.target as HTMLDivElement
+            );
+            if (index !== -1) {
+              setActiveIndex(index);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    imageRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, [images]);
+
+  useEffect(() => {
+    if (!thumbnailStripRef.current) return;
+    const activeThumb = thumbnailStripRef.current.children[
+      activeIndex
+    ] as HTMLElement | undefined;
+    if (activeThumb) {
+      activeThumb.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [activeIndex]);
+
+  const scrollToImage = (index: number) => {
+    imageRefs.current[index]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
   };
 
-  const nextImageIndex = imageIndex + 1 < images.length ? imageIndex + 1 : 0;
-  const previousImageIndex =
-    imageIndex === 0 ? images.length - 1 : imageIndex - 1;
-
-  const buttonClassName =
-    "h-full px-6 transition-all ease-in-out hover:scale-110 hover:text-black dark:hover:text-white flex items-center justify-center";
-
   return (
-    <form>
-      <div className="relative aspect-square h-full max-h-[550px] w-full overflow-hidden">
-        {images[imageIndex] && (
-          <Image
-            className="h-full w-full object-contain"
-            fill
-            sizes="(min-width: 1024px) 66vw, 100vw"
-            alt={images[imageIndex]?.altText as string}
-            src={images[imageIndex]?.src as string}
-            priority={true}
-          />
-        )}
-
-        {images.length > 1 ? (
-          <div className="absolute bottom-[15%] flex w-full justify-center">
-            <div className="mx-auto flex h-11 items-center rounded-full border border-white bg-neutral-50/80 text-neutral-500 backdrop-blur-sm dark:border-black dark:bg-neutral-900/80">
-              <button
-                formAction={() => updateImage(previousImageIndex.toString())}
-                aria-label="Previous product image"
-                className={buttonClassName}
-              >
-                <ArrowLeftIcon className="h-5" />
-              </button>
-              <div className="mx-1 h-6 w-px bg-neutral-500"></div>
-              <button
-                formAction={() => updateImage(nextImageIndex.toString())}
-                aria-label="Next product image"
-                className={buttonClassName}
-              >
-                <ArrowRightIcon className="h-5" />
-              </button>
-            </div>
+    <div className="relative">
+      <div className="flex flex-col gap-6">
+        {images.map((image, index) => (
+          <div
+            key={image.src}
+            ref={(el) => {
+              imageRefs.current[index] = el;
+            }}
+            className="relative aspect-[2/3] w-full overflow-hidden"
+          >
+            <Image
+              src={image.src}
+              alt={image.altText}
+              width={800}
+              height={1200}
+              sizes="(min-width: 1024px) 55vw, 100vw"
+              priority={index === 0}
+              className="h-full w-full object-cover"
+            />
           </div>
-        ) : null}
+        ))}
       </div>
 
-      {images.length > 1 ? (
-        <ul className="my-12 flex items-center flex-wrap justify-center gap-2 overflow-auto py-1 lg:mb-0">
-          {images.map((image, index) => {
-            const isActive = index === imageIndex;
-
-            return (
-              <li key={image.src} className="h-20 w-20">
-                <button
-                  formAction={() => updateImage(index.toString())}
-                  aria-label="Select product image"
-                  className="h-full w-full"
-                >
-                  <GridTileImage
-                    alt={image.altText}
-                    src={image.src}
-                    width={80}
-                    height={80}
-                    active={isActive}
-                  />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
-    </form>
+      {images.length > 1 && (
+        <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm">
+          <div
+            ref={thumbnailStripRef}
+            className="flex overflow-x-auto gap-2 py-2"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {images.map((image, index) => (
+              <button
+                key={image.src}
+                onClick={() => scrollToImage(index)}
+                aria-label={`View image ${index + 1}`}
+                className="flex-shrink-0"
+              >
+                <Image
+                  src={image.src}
+                  alt={image.altText}
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-cover"
+                  style={{
+                    border:
+                      activeIndex === index
+                        ? '2px solid #1c1c1c'
+                        : '1px solid #dddddd',
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

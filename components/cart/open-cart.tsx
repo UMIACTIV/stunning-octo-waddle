@@ -1,4 +1,3 @@
-import { ShoppingCartIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
 export default function OpenCart({
@@ -9,18 +8,27 @@ export default function OpenCart({
   quantity?: number;
 }) {
   return (
-    <div className="relative flex h-11 w-11 items-center justify-center rounded-md border border-neutral-200 text-black transition-colors dark:border-neutral-700 dark:text-white">
-      <ShoppingCartIcon
-        className={clsx(
-          "h-4 transition-all ease-in-out hover:scale-110",
-          className,
-        )}
-      />
+    <div className="relative flex items-center justify-center p-2 text-[var(--color-text)] transition-colors hover:opacity-70">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={clsx("transition-all ease-in-out", className)}
+      >
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
 
       {quantity ? (
-        <div className="absolute right-0 top-0 -mr-2 -mt-2 h-4 w-4 rounded-sm bg-blue-600 text-[11px] font-medium text-white">
+        <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center bg-[var(--color-primary)] text-[10px] font-medium text-white">
           {quantity}
-        </div>
+        </span>
       ) : null}
     </div>
   );

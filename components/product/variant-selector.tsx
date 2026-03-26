@@ -4,6 +4,19 @@ import clsx from "clsx";
 import { ProductOption, ProductVariant } from "lib/shopify/types";
 import { useRouter, useSearchParams } from "next/navigation";
 
+const COLOR_MAP: Record<string, string> = {
+  black: "#000000",
+  white: "#ffffff",
+  rose: "#f4c2c2",
+  merlot: "#73343a",
+  espresso: "#3c2415",
+  "powder rose": "#f4c2c2",
+  "deep merlot": "#73343a",
+  blue: "#4a90d9",
+  sunbeam: "#f5d547",
+  mint: "#98ff98",
+};
+
 type Combination = {
   id: string;
   availableForSale: boolean;
@@ -45,62 +58,106 @@ export function VariantSelector({
     router.replace(`?${params.toString()}`, { scroll: false });
   };
 
-  return options.map((option) => (
-    <form key={option.id}>
-      <dl className="mb-8">
-        <dt className="mb-4 text-sm uppercase tracking-wide">{option.name}</dt>
-        <dd className="flex flex-wrap gap-3">
-          {option.values.map((value) => {
-            const optionNameLowerCase = option.name.toLowerCase();
+  return options.map((option) => {
+    const optionNameLowerCase = option.name.toLowerCase();
+    const selectedValue = searchParams.get(optionNameLowerCase) ?? option.values[0];
+    const isColorOption = optionNameLowerCase === "color";
 
-            // Base option params on current searchParams so we can preserve any other param state.
-            const optionParams: Record<string, string> = {};
-            searchParams.forEach((v, k) => (optionParams[k] = v));
-            optionParams[optionNameLowerCase] = value;
+    return (
+      <form key={option.id}>
+        <dl className="mb-6">
+          <dt className="mb-3 font-[family-name:var(--font-heading)] text-xs font-medium uppercase tracking-[0.12em] text-[var(--color-text)]">
+            {option.name}:{" "}
+            <span className="font-[family-name:var(--font-body)] font-normal normal-case tracking-normal">
+              {selectedValue}
+            </span>
+          </dt>
+          <dd className="flex flex-wrap gap-2">
+            {option.values.map((value) => {
+              const optionParams: Record<string, string> = {};
+              searchParams.forEach((v, k) => (optionParams[k] = v));
+              optionParams[optionNameLowerCase] = value;
 
-            // Filter out invalid options and check if the option combination is available for sale.
-            const filtered = Object.entries(optionParams).filter(
-              ([key, value]) =>
-                options.find(
-                  (option) =>
-                    option.name.toLowerCase() === key &&
-                    option.values.includes(value),
+              const filtered = Object.entries(optionParams).filter(
+                ([key, val]) =>
+                  options.find(
+                    (opt) =>
+                      opt.name.toLowerCase() === key &&
+                      opt.values.includes(val),
+                  ),
+              );
+              const isAvailableForSale = combinations.find((combination) =>
+                filtered.every(
+                  ([key, val]) =>
+                    combination[key] === val && combination.availableForSale,
                 ),
-            );
-            const isAvailableForSale = combinations.find((combination) =>
-              filtered.every(
-                ([key, value]) =>
-                  combination[key] === value && combination.availableForSale,
-              ),
-            );
+              );
 
-            // The option is active if it's in the selected options.
-            const isActive = searchParams.get(optionNameLowerCase) === value;
+              const isActive = searchParams.get(optionNameLowerCase) === value;
 
-            return (
-              <button
-                formAction={() => updateOption(optionNameLowerCase, value)}
-                key={value}
-                aria-disabled={!isAvailableForSale}
-                disabled={!isAvailableForSale}
-                title={`${option.name} ${value}${!isAvailableForSale ? " (Out of Stock)" : ""}`}
-                className={clsx(
-                  "flex min-w-[48px] items-center justify-center rounded-full border bg-neutral-100 px-2 py-1 text-sm dark:border-neutral-800 dark:bg-neutral-900",
-                  {
-                    "cursor-default ring-2 ring-blue-600": isActive,
-                    "ring-1 ring-transparent transition duration-300 ease-in-out hover:ring-blue-600":
-                      !isActive && isAvailableForSale,
-                    "relative z-10 cursor-not-allowed overflow-hidden bg-neutral-100 text-neutral-500 ring-1 ring-neutral-300 before:absolute before:inset-x-0 before:-z-10 before:h-px before:-rotate-45 before:bg-neutral-300 before:transition-transform dark:bg-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:before:bg-neutral-700":
-                      !isAvailableForSale,
-                  },
-                )}
-              >
-                {value}
-              </button>
-            );
-          })}
-        </dd>
-      </dl>
-    </form>
-  ));
+              if (isColorOption) {
+                const swatchColor =
+                  COLOR_MAP[value.toLowerCase()] ?? "#cccccc";
+                const isLight =
+                  swatchColor === "#ffffff" || swatchColor === "#f5d547" || swatchColor === "#98ff98" || swatchColor === "#f4c2c2";
+
+                return (
+                  <button
+                    formAction={() => updateOption(optionNameLowerCase, value)}
+                    key={value}
+                    aria-disabled={!isAvailableForSale}
+                    disabled={!isAvailableForSale}
+                    title={`${option.name} ${value}${!isAvailableForSale ? " (Out of Stock)" : ""}`}
+                    className={clsx(
+                      "relative h-10 w-10 transition-all duration-200",
+                      {
+                        "border-2 border-[#1c1c1c]": isActive,
+                        "border border-[var(--color-border)] hover:border-[#1c1c1c]":
+                          !isActive && isAvailableForSale,
+                        "cursor-not-allowed opacity-50": !isAvailableForSale,
+                        "border border-[var(--color-border)]":
+                          !isActive && !isAvailableForSale,
+                      },
+                    )}
+                    style={{ backgroundColor: swatchColor }}
+                  >
+                    {!isAvailableForSale && (
+                      <span
+                        className="absolute inset-0"
+                        style={{
+                          background: `linear-gradient(to top right, transparent calc(50% - 0.5px), ${isLight ? "#999" : "#fff"} calc(50% - 0.5px), ${isLight ? "#999" : "#fff"} calc(50% + 0.5px), transparent calc(50% + 0.5px))`,
+                        }}
+                      />
+                    )}
+                  </button>
+                );
+              }
+
+              return (
+                <button
+                  formAction={() => updateOption(optionNameLowerCase, value)}
+                  key={value}
+                  aria-disabled={!isAvailableForSale}
+                  disabled={!isAvailableForSale}
+                  title={`${option.name} ${value}${!isAvailableForSale ? " (Out of Stock)" : ""}`}
+                  className={clsx(
+                    "flex min-h-[44px] min-w-[48px] items-center justify-center border px-3 py-2 font-[family-name:var(--font-body)] text-sm transition-colors duration-200",
+                    {
+                      "border-[#1c1c1c] bg-[#1c1c1c] text-white": isActive,
+                      "border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[#1c1c1c]":
+                        !isActive && isAvailableForSale,
+                      "cursor-not-allowed border-[var(--color-border)] bg-white text-[#999] line-through opacity-50":
+                        !isAvailableForSale,
+                    },
+                  )}
+                >
+                  {value}
+                </button>
+              );
+            })}
+          </dd>
+        </dl>
+      </form>
+    );
+  });
 }
