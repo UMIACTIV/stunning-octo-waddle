@@ -54,18 +54,20 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`${montserrat.variable} ${nunitoSans.variable}`}>
-      <body className="w-full overflow-x-clip bg-white text-[var(--color-text)]">
-        <AnnouncementBar />
-        <CartProvider cartPromise={cart}>
-          <WishlistProvider>
-            <Navbar />
-            <main className="w-full overflow-x-clip">
-              {children}
-              <Toaster closeButton />
-              <WelcomeToast />
-            </main>
-          </WishlistProvider>
-        </CartProvider>
+      <body className="bg-white text-[var(--color-text)]">
+        <div className="mobile-overflow-barrier">
+          <AnnouncementBar />
+          <CartProvider cartPromise={cart}>
+            <WishlistProvider>
+              <Navbar />
+              <main>
+                {children}
+                <Toaster closeButton />
+                <WelcomeToast />
+              </main>
+            </WishlistProvider>
+          </CartProvider>
+        </div>
       </body>
     </html>
   );
