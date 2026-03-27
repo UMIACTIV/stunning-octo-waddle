@@ -246,6 +246,7 @@ export function ProductGridClient({
         </div>
       </div>
 
+      <div className="overflow-x-hidden">
       <div
         className="scrollbar-hide flex overflow-x-auto px-4 md:px-8"
         style={{ scrollSnapType: 'x mandatory', gap: 0 }}
@@ -265,6 +266,7 @@ export function ProductGridClient({
             />
           </div>
         ))}
+      </div>
       </div>
 
       <div className="container-umi mt-8 text-center">

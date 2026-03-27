@@ -49,6 +49,7 @@ export function LifestyleGallery() {
         </p>
       </div>
 
+      <div className="overflow-x-hidden">
       <div
         className="scrollbar-hide flex gap-3 overflow-x-auto px-4 md:px-8"
         style={{ scrollSnapType: 'x mandatory' }}
@@ -73,6 +74,7 @@ export function LifestyleGallery() {
             />
           </Link>
         ))}
+      </div>
       </div>
     </section>
   );

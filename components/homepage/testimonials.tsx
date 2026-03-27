@@ -75,6 +75,7 @@ export function Testimonials() {
           &#8592;
         </button>
 
+        <div className="overflow-x-hidden">
         <div
           ref={scrollRef}
           className="scrollbar-hide flex gap-4 overflow-x-auto px-4 md:px-8"
@@ -128,6 +129,7 @@ export function Testimonials() {
               </div>
             </div>
           ))}
+        </div>
         </div>
 
         <button

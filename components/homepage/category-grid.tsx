@@ -48,6 +48,7 @@ export function CategoryGrid({
         {!subheading && <div className="mb-8" />}
       </div>
 
+      <div className="overflow-x-hidden">
       <div
         className="scrollbar-hide flex gap-3 overflow-x-auto px-4 md:px-8"
         style={{ scrollSnapType: 'x mandatory' }}
@@ -92,6 +93,7 @@ export function CategoryGrid({
             </span>
           </Link>
         ))}
+      </div>
       </div>
     </section>
   );

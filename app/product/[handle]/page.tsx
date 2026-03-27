@@ -131,6 +131,7 @@ async function RelatedProducts({ id }: { id: string }) {
       <h2 className="mb-6 text-center font-[family-name:var(--font-heading)] text-lg font-medium uppercase tracking-[0.2em] md:text-xl">
         Related Products
       </h2>
+      <div className="overflow-x-hidden">
       <ul className="scrollbar-hide flex w-full gap-4 overflow-x-auto pt-1">
         {relatedProducts.map((product) => (
           <li
@@ -157,6 +158,7 @@ async function RelatedProducts({ id }: { id: string }) {
           </li>
         ))}
       </ul>
+      </div>
     </div>
  );
 }
