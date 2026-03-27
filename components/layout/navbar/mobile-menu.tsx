@@ -3,7 +3,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 type MenuItem = { title: string; path: string };
@@ -14,6 +14,38 @@ export default function MobileMenu({ menu }: { menu: MenuItem[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const openMobileMenu = () => setIsOpen(true);
   const closeMobileMenu = () => setIsOpen(false);
+
+  // Swipe handling
+  const panelRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchDeltaX = useRef(0);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]!.clientX;
+    touchDeltaX.current = 0;
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    const delta = e.touches[0]!.clientX - touchStartX.current;
+    // Only track leftward swipes (negative delta)
+    touchDeltaX.current = Math.min(0, delta);
+    if (panelRef.current) {
+      panelRef.current.style.transform = `translateX(${touchDeltaX.current}px)`;
+      panelRef.current.style.transition = "none";
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    if (panelRef.current) {
+      panelRef.current.style.transition = "";
+      panelRef.current.style.transform = "";
+    }
+    // Close if swiped more than 80px left
+    if (touchDeltaX.current < -80) {
+      closeMobileMenu();
+    }
+    touchDeltaX.current = 0;
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -58,7 +90,13 @@ export default function MobileMenu({ menu }: { menu: MenuItem[] }) {
             leaveFrom="translate-x-0"
             leaveTo="translate-x-[-100%]"
           >
-            <Dialog.Panel className="fixed bottom-0 left-0 right-0 top-0 flex h-full w-full flex-col bg-white">
+            <Dialog.Panel
+              ref={panelRef}
+              className="fixed bottom-0 left-0 right-0 top-0 flex h-full w-full flex-col bg-white"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
               <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-4">
                 <span className="font-[family-name:var(--font-heading)] text-lg font-semibold uppercase tracking-[0.15em] text-[var(--color-text)]">
                   UMIACTIV

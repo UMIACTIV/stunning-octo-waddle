@@ -9,7 +9,7 @@ import { DEFAULT_OPTION } from "lib/constants";
 import { createUrl } from "lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createCartAndSetCookie, redirectToCheckout } from "./actions";
 import { useCart } from "./cart-context";
@@ -27,6 +27,35 @@ export default function CartModal() {
  const quantityRef = useRef(cart?.totalQuantity);
  const openCart = () => setIsOpen(true);
  const closeCart = () => setIsOpen(false);
+
+ const panelRef = useRef<HTMLDivElement>(null);
+ const touchStartX = useRef(0);
+ const touchDeltaX = useRef(0);
+
+ const onTouchStart = useCallback((e: React.TouchEvent) => {
+   touchStartX.current = e.touches[0]!.clientX;
+   touchDeltaX.current = 0;
+ }, []);
+
+ const onTouchMove = useCallback((e: React.TouchEvent) => {
+   const delta = e.touches[0]!.clientX - touchStartX.current;
+   touchDeltaX.current = Math.max(0, delta);
+   if (panelRef.current) {
+     panelRef.current.style.transform = `translateX(${touchDeltaX.current}px)`;
+     panelRef.current.style.transition = "none";
+   }
+ }, []);
+
+ const onTouchEnd = useCallback(() => {
+   if (panelRef.current) {
+     panelRef.current.style.transition = "";
+     panelRef.current.style.transform = "";
+   }
+   if (touchDeltaX.current > 80) {
+     closeCart();
+   }
+   touchDeltaX.current = 0;
+ }, []);
 
  useEffect(() => {
  if (!cart) {
@@ -74,7 +103,13 @@ export default function CartModal() {
  leaveFrom="translate-x-0"
  leaveTo="translate-x-full"
  >
- <Dialog.Panel className="fixed bottom-0 right-0 top-0 flex h-full w-full flex-col border-l border-[#ddd] bg-white p-4 text-[#1c1c1c] md:w-[390px] md:p-6">
+ <Dialog.Panel
+   ref={panelRef}
+   className="fixed bottom-0 right-0 top-0 flex h-full w-full flex-col border-l border-[#ddd] bg-white p-4 text-[#1c1c1c] md:w-[390px] md:p-6"
+   onTouchStart={onTouchStart}
+   onTouchMove={onTouchMove}
+   onTouchEnd={onTouchEnd}
+ >
  <div className="flex items-center justify-between">
  <p className="font-[family-name:var(--font-heading)] text-sm font-medium uppercase tracking-[0.16em]">My Cart</p>
  <button aria-label="Close cart" onClick={closeCart}>

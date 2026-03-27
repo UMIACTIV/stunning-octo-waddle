@@ -33,7 +33,7 @@ export async function Navbar() {
   return (
     <nav className="sticky top-9 z-40 w-full border-b border-[var(--color-border)] bg-white">
       <div className="flex items-center justify-between px-4 py-3 lg:px-8">
-        <div className="flex items-center gap-3 md:w-1/3">
+        <div className="flex w-1/3 items-center gap-3">
           <div className="md:hidden">
             <Suspense fallback={null}>
               <MobileMenu menu={navLinks} />
@@ -47,7 +47,7 @@ export async function Navbar() {
           </div>
         </div>
 
-        <div className="flex justify-center md:w-1/3">
+        <div className="flex w-1/3 justify-center">
           <Link
             href="/"
             prefetch={true}
@@ -57,7 +57,7 @@ export async function Navbar() {
           </Link>
         </div>
 
-        <div className="flex items-center justify-end gap-1 md:w-1/3">
+        <div className="flex w-1/3 items-center justify-end gap-1">
           <Suspense fallback={<SearchSkeleton />}>
             <Search />
           </Suspense>
