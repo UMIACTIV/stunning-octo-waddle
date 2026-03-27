@@ -47,7 +47,8 @@ export default async function RootLayout({
 
  return (
  <html lang="en" className={`${montserrat.variable} ${nunitoSans.variable}`}>
- <body className="overflow-x-hidden bg-white text-[var(--color-text)]">
+ <body className="bg-white text-[var(--color-text)]">
+ <div className="w-full overflow-x-hidden">
  <AnnouncementBar />
   <CartProvider cartPromise={cart}>
   <WishlistProvider>
@@ -59,6 +60,7 @@ export default async function RootLayout({
   </main>
   </WishlistProvider>
   </CartProvider>
+ </div>
  </body>
  </html>
  );
