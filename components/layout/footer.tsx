@@ -28,10 +28,7 @@ const INFO_LINKS = [
 ];
 
 const SOCIALS = [
- { label: 'Instagram', href: 'https://instagram.com/umi.dubai' },
- { label: 'TikTok', href: 'https://tiktok.com/@umiactiv' },
- { label: 'Facebook', href: 'https://facebook.com/umiactiv' },
- { label: 'Pinterest', href: 'https://pinterest.com/umiactiv' },
+ { label: 'Instagram', href: 'https://instagram.com/umi.activ' },
 ];
 
 function FooterColumn({
