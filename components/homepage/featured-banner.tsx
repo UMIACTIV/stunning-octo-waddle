@@ -11,7 +11,7 @@ export function FeaturedBanner() {
         alt="UMIACTIV Court Line Collection"
         fill
         sizes="100vw"
-        className="object-cover"
+        className="object-cover object-top md:object-center"
       />
 
       <div className="absolute inset-0 bg-black/10" />
