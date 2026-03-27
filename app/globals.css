@@ -51,6 +51,12 @@
     overflow: hidden;
   }
 
+  @media (min-width: 1024px) {
+    html {
+      zoom: 0.85;
+    }
+  }
+
   body {
     font-family: var(--font-body);
     font-weight: 400;
