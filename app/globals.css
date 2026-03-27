@@ -105,7 +105,6 @@
 /* Required: html/body overflow-x is unreliable on iOS Safari — this wrapper is the actual barrier */
 .mobile-overflow-barrier {
   width: 100%;
-  max-width: 100vw;
   overflow-x: hidden;
   position: relative;
 }
