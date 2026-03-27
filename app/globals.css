@@ -47,8 +47,6 @@
     color-scheme: light;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    height: 100%;
-    overflow: hidden;
   }
 
   @media (min-width: 1280px) {
@@ -64,10 +62,7 @@
     line-height: 1.6;
     color: var(--color-text);
     background-color: var(--color-background);
-    height: 100%;
     overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   h1, h2, h3, h4, h5, h6 {
