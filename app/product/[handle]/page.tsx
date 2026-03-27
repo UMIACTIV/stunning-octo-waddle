@@ -82,15 +82,15 @@ export default async function ProductPage(props: {
  __html: JSON.stringify(productJsonLd),
  }}
  />
-   <div className="container-umi py-6 md:py-8">
+   <div className="container-umi py-8 md:py-12">
    {/* Breadcrumb */}
-   <nav className="mb-6 font-[family-name:var(--font-body)] text-xs text-[var(--color-text-muted)]">
+   <nav className="mb-8 font-[family-name:var(--font-body)] text-xs text-[var(--color-text-muted)]">
     <Link href="/" className="hover:text-[var(--color-text)]">Home</Link>
     <span className="mx-2">/</span>
     <span className="text-[var(--color-text)]">{product.title}</span>
    </nav>
 
-   <div className="flex flex-col lg:flex-row lg:gap-10">
+   <div className="flex flex-col lg:flex-row lg:gap-16">
    <div className="w-full lg:w-[55%]">
    <Suspense
    fallback={

@@ -140,7 +140,7 @@ export function Gallery({
 
       {/* ═══ DESKTOP: Vertical image stack ═══ */}
       <div className="hidden md:block">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           {images.map((image, index) => (
             <div
               key={image.src}

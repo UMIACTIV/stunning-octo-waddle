@@ -12,18 +12,18 @@ export function ProductDescription({ product }: { product: Product }) {
       {/* Brand */}
       <Link
         href="/search"
-        className="mb-2 font-[family-name:var(--font-heading)] text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+        className="mb-3 font-[family-name:var(--font-heading)] text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
       >
         UMIACTIV
       </Link>
 
       {/* Title */}
-      <h1 className="mb-2 font-[family-name:var(--font-heading)] font-medium uppercase tracking-[0.2em] text-[length:var(--text-h1)]">
+      <h1 className="mb-3 font-[family-name:var(--font-heading)] font-medium uppercase tracking-[0.15em] text-[length:var(--text-h1)]">
         {product.title}
       </h1>
 
       {/* Stars placeholder */}
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-2">
         <div className="flex items-center gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
             <svg
@@ -45,7 +45,7 @@ export function ProductDescription({ product }: { product: Product }) {
       </div>
 
       {/* Price */}
-      <div className="mb-4 font-[family-name:var(--font-body)] text-base font-normal text-[var(--color-text)]">
+      <div className="mb-5 font-[family-name:var(--font-body)] text-lg font-normal text-[var(--color-text)]">
         <Price
           amount={product.priceRange.maxVariantPrice.amount}
           currencyCode={product.priceRange.maxVariantPrice.currencyCode}
@@ -53,7 +53,7 @@ export function ProductDescription({ product }: { product: Product }) {
       </div>
 
       {/* Divider */}
-      <div className="mb-6 border-t border-[var(--color-border)]" />
+      <div className="mb-7 border-t border-[var(--color-border)]" />
 
       {/* Variant Selector */}
       <VariantSelector options={product.options} variants={product.variants} />
@@ -66,7 +66,7 @@ export function ProductDescription({ product }: { product: Product }) {
 
       {/* Description Accordions */}
       {product.descriptionHtml ? (
-        <div className="mt-6">
+        <div className="mt-8">
           <AccordionSection title="Description" defaultOpen>
             <div
               className="font-[family-name:var(--font-body)] text-sm leading-relaxed text-[var(--color-text)] [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:font-[family-name:var(--font-heading)] [&_h3]:text-sm [&_h3]:font-medium [&_h3]:uppercase [&_h3]:tracking-[0.2em] [&_p]:mb-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"
