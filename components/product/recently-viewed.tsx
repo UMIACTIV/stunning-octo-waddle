@@ -61,6 +61,7 @@ export function RecentlyViewed({ currentHandle }: { currentHandle?: string }) {
       <h2 className="mb-6 text-center font-[family-name:var(--font-heading)] font-medium uppercase tracking-[0.2em] text-[length:var(--text-h2)]">
         Recently Viewed
       </h2>
+      <div className="overflow-x-hidden">
       <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-4">
         {products.map((product) => (
           <Link
@@ -87,6 +88,7 @@ export function RecentlyViewed({ currentHandle }: { currentHandle?: string }) {
             </p>
           </Link>
         ))}
+      </div>
       </div>
     </section>
   );

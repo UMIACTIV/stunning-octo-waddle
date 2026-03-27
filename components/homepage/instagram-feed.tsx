@@ -61,6 +61,7 @@ export function InstagramFeed({ heading, subheading, postUrls }: InstagramFeedPr
           &#8592;
         </button>
 
+        <div className="overflow-x-hidden">
         <div
           ref={scrollRef}
           className="scrollbar-hide flex gap-4 overflow-x-auto px-4 md:px-8"
@@ -91,6 +92,7 @@ export function InstagramFeed({ heading, subheading, postUrls }: InstagramFeedPr
               />
             </div>
           ))}
+        </div>
         </div>
 
         <button
