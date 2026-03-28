@@ -107,7 +107,6 @@ export default function HomePage() {
         subheading="Where chic aesthetics meet elevated, timeless silhouettes."
         items={categories}
       />
-      <FeaturedBanner />
       <Testimonials />
       <Footer />
     </>
