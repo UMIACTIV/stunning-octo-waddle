@@ -144,8 +144,9 @@ export default function Search() {
       return;
     }
 
+    if (value.trim().length < 2) return;
     setIsLoading(true);
-    timerRef.current = setTimeout(() => fetchResults(value), 300);
+    timerRef.current = setTimeout(() => fetchResults(value), 500);
   }
 
   function handleSubmit(e: React.FormEvent) {
