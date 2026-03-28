@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function Gallery({
   images,
@@ -32,8 +32,8 @@ export function Gallery({
       });
     };
 
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
   }, [images]);
 
   /* ── Desktop: IntersectionObserver for vertical stack ── */
@@ -45,13 +45,13 @@ export function Gallery({
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = desktopImageRefs.current.indexOf(
-              entry.target as HTMLDivElement
+              entry.target as HTMLDivElement,
             );
             if (index !== -1) setActiveIndex(index);
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     desktopImageRefs.current.forEach((ref) => {
@@ -63,16 +63,13 @@ export function Gallery({
 
   /* ── Scroll thumbnail strip to keep active thumb visible ── */
   useEffect(() => {
-    if (!thumbnailStripRef.current) return;
-    const activeThumb = thumbnailStripRef.current.children[
-      activeIndex
-    ] as HTMLElement | undefined;
+    const strip = thumbnailStripRef.current;
+    if (!strip) return;
+    const activeThumb = strip.children[activeIndex] as HTMLElement | undefined;
     if (activeThumb) {
-      activeThumb.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
+      const thumbCenter = activeThumb.offsetLeft + activeThumb.offsetWidth / 2;
+      const scrollTarget = thumbCenter - strip.clientWidth / 2;
+      strip.scrollTo({ left: scrollTarget, behavior: "smooth" });
     }
   }, [activeIndex]);
 
@@ -80,14 +77,14 @@ export function Gallery({
   const scrollToMobileSlide = useCallback((index: number) => {
     const el = mobileScrollRef.current;
     if (!el) return;
-    el.scrollTo({ left: index * el.clientWidth, behavior: 'smooth' });
+    el.scrollTo({ left: index * el.clientWidth, behavior: "smooth" });
   }, []);
 
   /* ── Desktop: tap thumbnail to scroll page ── */
   const scrollToDesktopImage = useCallback((index: number) => {
     desktopImageRefs.current[index]?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
+      behavior: "smooth",
+      block: "center",
     });
   }, []);
 
@@ -126,11 +123,11 @@ export function Gallery({
                 aria-label={`Go to image ${index + 1}`}
                 className="block transition-all"
                 style={{
-                  width: activeIndex === index ? '20px' : '6px',
-                  height: '6px',
-                  borderRadius: '3px',
+                  width: activeIndex === index ? "20px" : "6px",
+                  height: "6px",
+                  borderRadius: "3px",
                   backgroundColor:
-                    activeIndex === index ? '#1c1c1c' : '#d4d4d4',
+                    activeIndex === index ? "#1c1c1c" : "#d4d4d4",
                 }}
               />
             ))}
@@ -168,7 +165,7 @@ export function Gallery({
             <div
               ref={thumbnailStripRef}
               className="flex gap-2 overflow-x-auto py-2"
-              style={{ scrollbarWidth: 'none' }}
+              style={{ scrollbarWidth: "none" }}
             >
               {images.map((image, index) => (
                 <button
@@ -186,8 +183,8 @@ export function Gallery({
                     style={{
                       border:
                         activeIndex === index
-                          ? '2px solid #1c1c1c'
-                          : '1px solid #dddddd',
+                          ? "2px solid #1c1c1c"
+                          : "1px solid #dddddd",
                     }}
                   />
                 </button>
