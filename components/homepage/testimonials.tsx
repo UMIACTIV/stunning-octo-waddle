@@ -126,7 +126,7 @@ export function Testimonials() {
                     alt={review.product}
                     fill
                     sizes="(min-width: 768px) 28vw, 70vw"
-                    className="object-cover"
+                    className="object-cover object-top"
                   />
                 </div>
                 <div style={{ padding: "16px" }}>
