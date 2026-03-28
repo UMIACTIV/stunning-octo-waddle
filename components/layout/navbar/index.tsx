@@ -32,7 +32,7 @@ export async function Navbar() {
   }).concat(STATIC_LINKS);
 
   return (
-    <nav className="sticky top-9 z-40 w-full border-b border-[var(--color-border)] bg-white">
+    <nav className="sticky top-0 z-40 w-full border-b border-[var(--color-border)] bg-white">
       <div className="flex items-center justify-between px-4 py-3 lg:px-8">
         <div className="flex w-1/3 items-center gap-3">
           <div className="md:hidden">

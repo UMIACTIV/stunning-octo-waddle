@@ -108,7 +108,7 @@ export default async function ProductPage(props: {
             </Suspense>
           </div>
 
-          <div className="mt-6 w-full lg:mt-0 lg:w-[45%] lg:sticky lg:top-24 lg:self-start">
+          <div className="mt-6 w-full lg:mt-0 lg:w-[45%] lg:sticky lg:top-16 lg:self-start">
             <Suspense fallback={null}>
               <ProductDescription product={product} />
             </Suspense>
