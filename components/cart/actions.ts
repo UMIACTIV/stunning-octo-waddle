@@ -95,7 +95,7 @@ export async function updateItemQuantity(
   }
 }
 
-export async function redirectToCheckout() {
+export async function redirectToCheckout(fbp?: string, fbc?: string) {
   let cart = await getCart();
   let checkoutUrl = cart!.checkoutUrl;
 
@@ -106,8 +106,10 @@ export async function redirectToCheckout() {
       const shopify = new URL(`https://${shopifyDomain}`);
       if (url.hostname !== shopify.hostname) {
         url.hostname = shopify.hostname;
-        checkoutUrl = url.toString();
       }
+      if (fbp) url.searchParams.set("fbp", fbp);
+      if (fbc) url.searchParams.set("fbc", fbc);
+      checkoutUrl = url.toString();
     } catch {}
   }
 

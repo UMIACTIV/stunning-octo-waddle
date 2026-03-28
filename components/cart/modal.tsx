@@ -310,7 +310,14 @@ export default function CartModal() {
                         cart.cost.totalAmount.amount,
                         cart.cost.totalAmount.currencyCode,
                       );
-                      redirectToCheckout();
+                      const getCookie = (name: string) =>
+                        document.cookie
+                          .split("; ")
+                          .find((r) => r.startsWith(name + "="))
+                          ?.split("=")
+                          .slice(1)
+                          .join("=");
+                      redirectToCheckout(getCookie("_fbp"), getCookie("_fbc"));
                     }}
                   >
                     <CheckoutButton />
