@@ -142,15 +142,6 @@ function ProductCard({
           </p>
         </Link>
 
-        <div className="mb-1 flex items-center gap-1.5">
-          <span
-            style={{ fontSize: "11px", color: "#1c1c1c", letterSpacing: "1px" }}
-          >
-            ★★★★★
-          </span>
-          <span style={{ fontSize: "11px", color: "#999" }}>No reviews</span>
-        </div>
-
         <p className="mb-2">
           <span className="sr-only">Sale price</span>
           <span

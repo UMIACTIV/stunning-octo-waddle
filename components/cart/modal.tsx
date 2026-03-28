@@ -12,6 +12,7 @@ import Link from "next/link";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { trackBeginCheckout } from "lib/tracking";
+import { CartUpsell } from "./cart-upsell";
 import { createCartAndSetCookie, redirectToCheckout } from "./actions";
 import { useCart } from "./cart-context";
 import { DeleteItemButton } from "./delete-item-button";
@@ -296,6 +297,12 @@ export default function CartModal() {
                       />
                     </div>
                   </div>
+                  <CartUpsell
+                    cartProductIds={cart.lines.map(
+                      (l) => l.merchandise.product.handle,
+                    )}
+                    onNavigate={() => setIsOpen(false)}
+                  />
                   <form
                     action={() => {
                       trackBeginCheckout(

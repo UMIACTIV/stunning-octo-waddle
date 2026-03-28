@@ -22,27 +22,36 @@ export function ProductDescription({ product }: { product: Product }) {
         {product.title}
       </h1>
 
-      {/* Stars placeholder */}
-      <div className="mb-4 flex items-center gap-2">
-        <div className="flex items-center gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <svg
-              key={i}
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#1c1c1c"
-              strokeWidth="1.5"
-            >
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          ))}
-        </div>
-        <span className="font-[family-name:var(--font-body)] text-xs text-[var(--color-text-muted)]">
-          No reviews
-        </span>
-      </div>
+      {/* Stars — only show when product has actual reviews */}
+      {product.metafield_rating &&
+        parseFloat(product.metafield_rating.value) > 0 && (
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <svg
+                  key={i}
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill={
+                    i < Math.round(parseFloat(product.metafield_rating!.value))
+                      ? "#1c1c1c"
+                      : "none"
+                  }
+                  stroke="#1c1c1c"
+                  strokeWidth="1.5"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              ))}
+            </div>
+            {product.metafield_rating_count && (
+              <span className="font-[family-name:var(--font-body)] text-xs text-[var(--color-text-muted)]">
+                ({product.metafield_rating_count.value})
+              </span>
+            )}
+          </div>
+        )}
 
       {/* Price */}
       <div className="mb-5 font-[family-name:var(--font-body)] text-lg font-normal text-[var(--color-text)]">

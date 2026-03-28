@@ -77,16 +77,6 @@ export function GridTileImage({
           >
             {label.title}
           </p>
-          <p
-            className="mt-1 text-[12px]"
-            style={{
-              fontFamily: "var(--font-body)",
-              fontWeight: 400,
-              color: "#999",
-            }}
-          >
-            No reviews
-          </p>
           <p className="mt-1 flex items-baseline">
             <span className="sr-only">Sale price</span>
             {isOnSale && !isSoldOut && compareAtPrice ? (

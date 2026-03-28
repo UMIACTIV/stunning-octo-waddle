@@ -1,5 +1,6 @@
 import { Analytics } from "components/analytics";
 import { CartProvider } from "components/cart/cart-context";
+import { EmailPopup } from "components/email-popup";
 import { AnnouncementBar } from "components/layout/announcement-bar";
 import { Navbar } from "components/layout/navbar";
 import { WishlistProvider } from "components/wishlist/wishlist-context";
@@ -70,6 +71,7 @@ export default async function RootLayout({
                 {children}
                 <Toaster closeButton />
                 <WelcomeToast />
+                <EmailPopup />
               </main>
             </WishlistProvider>
           </CartProvider>
