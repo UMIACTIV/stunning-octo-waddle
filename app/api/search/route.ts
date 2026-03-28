@@ -1,13 +1,30 @@
 import { getProducts } from "lib/shopify";
+import { buildSearchIndex, searchProducts } from "lib/search";
 import { NextRequest, NextResponse } from "next/server";
 
-// Simple in-memory cache to avoid hammering Shopify on repeated queries
+const HEADERS = { "Cache-Control": "public, max-age=300, s-maxage=300" };
+
 const cache = new Map<string, { data: unknown; ts: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
+
+function formatResult(r: {
+  handle: string;
+  title: string;
+  image: string;
+  price: string;
+  currencyCode: string;
+}) {
+  return {
+    handle: r.handle,
+    title: r.title,
+    image: r.image,
+    price: r.price,
+    currencyCode: r.currencyCode,
+  };
+}
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = request.nextUrl;
-  const query = (searchParams.get("q") || "").trim();
+  const query = (request.nextUrl.searchParams.get("q") || "").trim();
 
   if (!query || query.length < 2) {
     return NextResponse.json([]);
@@ -16,25 +33,31 @@ export async function GET(request: NextRequest) {
   const cacheKey = query.toLowerCase();
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
-    return NextResponse.json(cached.data, {
-      headers: { "Cache-Control": "public, max-age=300, s-maxage=300" },
-    });
+    return NextResponse.json(cached.data, { headers: HEADERS });
   }
 
   try {
-    const products = await getProducts({ query });
+    const allProducts = await getProducts({});
+    const index = buildSearchIndex(allProducts);
+    const smartResults = searchProducts(index, query);
 
-    const results = products.map((product) => ({
-      handle: product.handle,
-      title: product.title,
-      image: product.featuredImage?.url || "",
-      price: product.priceRange.maxVariantPrice.amount,
-      currencyCode: product.priceRange.maxVariantPrice.currencyCode,
+    if (smartResults.length > 0) {
+      const data = smartResults.slice(0, 6).map(formatResult);
+      cache.set(cacheKey, { data, ts: Date.now() });
+      return NextResponse.json(data, { headers: HEADERS });
+    }
+
+    const shopifyResults = await getProducts({ query });
+    const data = shopifyResults.slice(0, 6).map((p) => ({
+      handle: p.handle,
+      title: p.title,
+      image: p.featuredImage?.url || "",
+      price: p.priceRange.maxVariantPrice.amount,
+      currencyCode: p.priceRange.maxVariantPrice.currencyCode,
     }));
 
-    cache.set(cacheKey, { data: results, ts: Date.now() });
+    cache.set(cacheKey, { data, ts: Date.now() });
 
-    // Evict old entries if cache grows too large
     if (cache.size > 200) {
       const now = Date.now();
       for (const [key, val] of cache) {
@@ -42,9 +65,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(results, {
-      headers: { "Cache-Control": "public, max-age=300, s-maxage=300" },
-    });
+    return NextResponse.json(data, { headers: HEADERS });
   } catch {
     return NextResponse.json([]);
   }
