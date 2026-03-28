@@ -1,3 +1,4 @@
+import { Analytics } from "components/analytics";
 import { CartProvider } from "components/cart/cart-context";
 import { AnnouncementBar } from "components/layout/announcement-bar";
 import { Navbar } from "components/layout/navbar";
@@ -5,7 +6,7 @@ import { WishlistProvider } from "components/wishlist/wishlist-context";
 import { WelcomeToast } from "components/welcome-toast";
 import { Montserrat, Nunito_Sans } from "next/font/google";
 import { getCart } from "lib/shopify";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { baseUrl } from "lib/utils";
@@ -54,6 +55,11 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`${montserrat.variable} ${nunitoSans.variable}`}>
+      <head>
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
+      </head>
       <body className="bg-white text-[var(--color-text)]">
         <div className="mobile-overflow-barrier">
           <AnnouncementBar />

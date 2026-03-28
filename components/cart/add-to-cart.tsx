@@ -6,6 +6,7 @@ import { addItem } from "components/cart/actions";
 import LoadingDots from "components/loading-dots";
 import Price from "components/price";
 import { Product, ProductVariant } from "lib/shopify/types";
+import { trackAddToCart } from "lib/tracking";
 import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -112,6 +113,15 @@ export function AddToCart({ product }: { product: Product }) {
   const handleAddToCart = async () => {
     addCartItem(finalVariant, product);
     addItemAction();
+    trackAddToCart({
+      id: product.id,
+      title: product.title,
+      price: finalVariant.price.amount,
+      currencyCode: finalVariant.price.currencyCode,
+      handle: product.handle,
+      variant: finalVariant.title,
+      quantity: 1,
+    });
   };
 
   return (

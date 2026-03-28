@@ -2,6 +2,7 @@ import { GridTileImage } from "components/grid/tile";
 import Footer from "components/layout/footer";
 import { Gallery } from "components/product/gallery";
 import { ProductDescription } from "components/product/product-description";
+import { ProductViewTracker } from "components/product/view-tracker";
 import { RecentlyViewed } from "components/product/recently-viewed";
 import { ReviewsSection } from "components/product/reviews-section";
 import { HIDDEN_PRODUCT_TAG } from "lib/constants";
@@ -92,6 +93,13 @@ export default async function ProductPage(props: {
           <span className="text-[var(--color-text)]">{product.title}</span>
         </nav>
 
+        <ProductViewTracker
+          id={product.id}
+          title={product.title}
+          price={product.priceRange.maxVariantPrice.amount}
+          currencyCode={product.priceRange.maxVariantPrice.currencyCode}
+          handle={product.handle}
+        />
         <div className="flex flex-col lg:flex-row lg:gap-16">
           <div className="w-full lg:w-[55%]">
             <Suspense
